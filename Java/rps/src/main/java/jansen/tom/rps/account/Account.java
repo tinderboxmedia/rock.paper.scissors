@@ -1,9 +1,14 @@
 package jansen.tom.rps.account;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jansen.tom.rps.authentication.Authentication;
+
 import javax.persistence.*;
 import java.time.Instant;
+import java.util.List;
 
 @Entity
+@JsonIgnoreProperties("authentications")
 public class Account {
 
     @Id
@@ -22,6 +27,9 @@ public class Account {
     @Column(nullable = false)
     private Instant creationTime;
 
+    @OneToMany(mappedBy="account")
+    private List<Authentication> authentications;
+
     // Deserialization
     public Account() {}
 
@@ -33,7 +41,7 @@ public class Account {
     }
 
     public enum AccountStatus {
-        INACTIVE, VERIFIED
+        INACTIVE, VERIFIED, LOCKED
     }
 
     public enum AccountRole {

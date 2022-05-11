@@ -23,14 +23,27 @@ public class AccountService {
         return accountRepository.findById(id);
     }
 
-    public Account createAccount(Account account) {
+    private void authenticateAccount(Account account) {
+        System.out.println("Authentication for " + account + " with identifier " + account.getId());
+    }
+
+    public Account checkAccount(Account account) {
         String email = account.getEmail();
-        if(!isValid(email) || accountRepository.existsByEmailIgnoreCase(email)) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        Optional<Account> foundAccount = accountRepository.findByEmailIgnoreCase(email);
+        if(foundAccount.isPresent()) {
+            // This account can be found thus get it
+            authenticateAccount(foundAccount.get());
+            throw new ResponseStatusException(HttpStatus.OK);
         }
-        Account newAccount = new Account(email.toLowerCase());
-        accountRepository.save(newAccount);
-        return newAccount;
+        if(isValid(email)) {
+            // This account is new and also valid thus create it
+            Account newAccount = new Account(email.toLowerCase());
+            accountRepository.save(newAccount);
+            authenticateAccount(newAccount);
+            return newAccount;
+        }
+        // Throw ambiguous exception if something is wrong with formatting
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private boolean isValid(String email) {
@@ -40,6 +53,7 @@ public class AccountService {
             Pattern pattern = Pattern.compile(emailRegex);
             return pattern.matcher(email).matches();
         }
+        // Not valid
         return false;
     }
 
