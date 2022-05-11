@@ -1,6 +1,5 @@
 package jansen.tom.rps.account;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,11 +20,10 @@ public class AccountService {
     }
 
     public Optional<Account> getAccountById(Long id) {
-        Optional<Account> foundAccount = accountRepository.findById(id);
-        return foundAccount;
+        return accountRepository.findById(id);
     }
 
-    public Account createAccount(@NotNull Account account) {
+    public Account createAccount(Account account) {
         String email = account.getEmail();
         if(!isValid(email) || accountRepository.existsByEmailIgnoreCase(email)) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
