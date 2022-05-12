@@ -6,17 +6,14 @@ import javax.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
 
-
 @Entity
 public class Authentication {
-
-    private static final int EXPIRATION_MINUTES = 60;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private UUID token;
 
     @Column(nullable = false)
@@ -31,8 +28,8 @@ public class Authentication {
     // Deserialization
     public Authentication() {}
 
-    public Authentication(Account account) {
-        this.token = UUID.randomUUID();
+    public Authentication(Account account, UUID token) {
+        this.token = token;
         this.creationTime = Instant.now();
         this.status = AuthenticationStatus.AWAIT;
         this.account = account;
