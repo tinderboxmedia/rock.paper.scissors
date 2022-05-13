@@ -51,7 +51,7 @@ public class AccountService {
             accountRepository.save(newAccount);
             authenticateAccount(newAccount);
         }
-        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR);
+        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "This input is not a valid email address.");
     }
 
     private boolean isValid(String email) {
@@ -66,20 +66,21 @@ public class AccountService {
     }
 
     private void authenticateAccount(Account account) {
-        if(!accountMayAuthenticate(account) || !systemMayAuthenticate()) {
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS);
+        if(!accountMayAuthenticate(account)) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "You can send one authentication request every " + AUTH_ACCOUNT_REQUEST_LIMIT + " minutes.");
+        }
+        if(!systemMayAuthenticate()) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "The authentication service is overloaded and not reachable.");
         }
         Authentication newAuthentication = new Authentication(account, uniqueToken());
         authenticationRepository.save(newAuthentication);
 
-        // ...
-        // ...
         // We now send the actual auth email and manage
         System.out.println(newAuthentication.getToken());
         // This exception should also be explored further
-        throw new ResponseStatusException(HttpStatus.OK);
-        // ...
-        // ...
+        throw new ResponseStatusException(HttpStatus.OK, "Success message. We still need to get SMTP feedback.");
 
     }
 
@@ -87,13 +88,13 @@ public class AccountService {
         Instant compareTime = Instant.now().minus(60, ChronoUnit.MINUTES);
         List<Authentication> entryList = authenticationRepository.findByCreationTimeGreaterThanEqual(compareTime);
         // Check if the system can manage all the authentication requests first
-        return entryList.size() < Integer.parseInt(AUTH_SYSTEM_REQUEST_LIMIT);
+        return entryList.size() <= Integer.parseInt(AUTH_SYSTEM_REQUEST_LIMIT);
     }
 
     private boolean accountMayAuthenticate(Account account) {
         List<Authentication> entryList = authenticationRepository.findByAccountOrderByIdDesc(account);
         if(!entryList.isEmpty()) {
-            // Check if an account did not reach the auth request limit
+            // Check if an account did not reach their auth request limit
             Instant authCreationTime = entryList.get(0).getCreationTime();
             Instant compareTime = Instant.now().minus(Long.parseLong(AUTH_ACCOUNT_REQUEST_LIMIT), ChronoUnit.MINUTES);
             return authCreationTime.compareTo(compareTime) < 0;

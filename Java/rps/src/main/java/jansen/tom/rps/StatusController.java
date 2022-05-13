@@ -9,11 +9,31 @@ import java.util.UUID;
 @RestController
 public class StatusController {
 
+    public static class Status {
+
+        private final Instant dateTime;
+        private final UUID session;
+
+        public Status() {
+            this.dateTime = Instant.now();
+            this.session = UUID.randomUUID();
+        }
+
+        public Instant getDateTime() {
+            return dateTime;
+        }
+
+        public UUID getSession() {
+            return session;
+        }
+
+    }
+
     @RequestMapping(value = "")
-    public String getStatus() {
-        String uniTime = Instant.now().toString();
-        String token = UUID.randomUUID().toString();
-        return uniTime + " " + token;
+    public Status getStatus() {
+        // Object will be json
+        return new Status();
     }
 
 }
+
