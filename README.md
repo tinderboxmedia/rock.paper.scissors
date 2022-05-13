@@ -24,4 +24,4 @@ spring.datasource.password=password
 
 **REST Response**
 
-Authentication: If the `message` variable is present in the response, we may use that as user feedback right away. If this is not the case on non succesfull exceptions, it's an unexpected error and the user feedback must be generated on the client side.
+Authentication: If the `message` variable is present in the response, we may use that as user feedback right away. If this isn't the case on non-succesful exceptions however, it's an unexpected error and the user feedback must be generated and handled by the client side.
