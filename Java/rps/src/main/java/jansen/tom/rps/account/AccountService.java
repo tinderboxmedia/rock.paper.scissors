@@ -2,6 +2,7 @@ package jansen.tom.rps.account;
 
 import jansen.tom.rps.authentication.Authentication;
 import jansen.tom.rps.authentication.AuthenticationRepository;
+import jansen.tom.rps.authentication.sending.SendingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -32,6 +33,9 @@ public class AccountService {
 
     @Value("${authentication.system.limit}")
     public String AUTH_SYSTEM_REQUEST_LIMIT;
+
+    @Value("${authentication.system.time}")
+    public String AUTH_SYSTEM_REQUEST_TIME;
 
     public List<Account> getAllAccounts() {
         return accountRepository.findAll();
@@ -85,18 +89,13 @@ public class AccountService {
         }
         Authentication newAuthentication = new Authentication(account, uniqueToken());
         authenticationRepository.save(newAuthentication);
-
-        // We now send the actual auth email and manage
-        System.out.println(newAuthentication.getToken());
-        // This exception should also be explored further
-        throw new ResponseStatusException(HttpStatus.OK,
-                "Success message. We still need to get SMTP feedback.");
-
+        // Calls the service that will manage all the actual sending
+        SendingService.sendAuthentication(account, newAuthentication);
     }
 
     private boolean systemMayAuthenticate() {
         Timestamp compareTime = Timestamp.from(ZonedDateTime.now().toInstant()
-                .minus(60, ChronoUnit.MINUTES));
+                .minus(Long.parseLong(AUTH_SYSTEM_REQUEST_TIME), ChronoUnit.MINUTES));
         List<Authentication> entryList = authenticationRepository.findByCreationTimeGreaterThanEqual(compareTime);
         // Check if the system can manage all the authentication requests first
         return entryList.size() <= Integer.parseInt(AUTH_SYSTEM_REQUEST_LIMIT);
