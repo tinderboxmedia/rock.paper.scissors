@@ -51,7 +51,8 @@ public class AccountService {
             accountRepository.save(newAccount);
             authenticateAccount(newAccount);
         }
-        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "This input is not a valid email address.");
+        throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                "This input is not a valid email address.");
     }
 
     private boolean isValid(String email) {
@@ -67,8 +68,10 @@ public class AccountService {
 
     private void authenticateAccount(Account account) {
         if(!accountMayAuthenticate(account)) {
+            String authLimit = AUTH_ACCOUNT_REQUEST_LIMIT;
+            String suffix = (authLimit.equals("1")) ? "" : "s";
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                    "You can send one authentication request every " + AUTH_ACCOUNT_REQUEST_LIMIT + " minutes.");
+                    "You can send one authentication request every " + authLimit + " minute" + suffix + ".");
         }
         if(!systemMayAuthenticate()) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
@@ -80,7 +83,8 @@ public class AccountService {
         // We now send the actual auth email and manage
         System.out.println(newAuthentication.getToken());
         // This exception should also be explored further
-        throw new ResponseStatusException(HttpStatus.OK, "Success message. We still need to get SMTP feedback.");
+        throw new ResponseStatusException(HttpStatus.OK,
+                "Success message. We still need to get SMTP feedback.");
 
     }
 
