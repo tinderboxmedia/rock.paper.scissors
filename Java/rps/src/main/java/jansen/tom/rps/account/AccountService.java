@@ -44,7 +44,12 @@ public class AccountService {
         String email = account.getEmail();
         Optional<Account> foundAccount = accountRepository.findByEmailIgnoreCase(email);
         if(foundAccount.isPresent()) {
-            authenticateAccount(foundAccount.get());
+            Account oldAccount = foundAccount.get();
+            if (oldAccount.getStatus() != Account.AccountStatus.LOCKED) {
+                authenticateAccount(oldAccount);
+            }
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "It seems like that this account may be locked.");
         }
         if(isValid(email)) {
             Account newAccount = new Account(email.toLowerCase());
@@ -52,7 +57,7 @@ public class AccountService {
             authenticateAccount(newAccount);
         }
         throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
-                "This input is not a valid email address.");
+                "This input is unfortunately not a valid email address.");
     }
 
     private boolean isValid(String email) {
