@@ -9,7 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Instant;
+import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
@@ -94,7 +95,8 @@ public class AccountService {
     }
 
     private boolean systemMayAuthenticate() {
-        Instant compareTime = Instant.now().minus(60, ChronoUnit.MINUTES);
+        Timestamp compareTime = Timestamp.from(ZonedDateTime.now().toInstant()
+                .minus(60, ChronoUnit.MINUTES));
         List<Authentication> entryList = authenticationRepository.findByCreationTimeGreaterThanEqual(compareTime);
         // Check if the system can manage all the authentication requests first
         return entryList.size() <= Integer.parseInt(AUTH_SYSTEM_REQUEST_LIMIT);
@@ -103,9 +105,10 @@ public class AccountService {
     private boolean accountMayAuthenticate(Account account) {
         List<Authentication> entryList = authenticationRepository.findByAccountOrderByIdDesc(account);
         if(!entryList.isEmpty()) {
-            // Check if an account did not reach their auth request limit
-            Instant authCreationTime = entryList.get(0).getCreationTime();
-            Instant compareTime = Instant.now().minus(Long.parseLong(AUTH_ACCOUNT_REQUEST_LIMIT), ChronoUnit.MINUTES);
+            // Check if an account did not reach their auth request limits
+            Timestamp authCreationTime = entryList.get(0).getCreationTime();
+            Timestamp compareTime = Timestamp.from(ZonedDateTime.now().toInstant()
+                    .minus(Long.parseLong(AUTH_ACCOUNT_REQUEST_LIMIT), ChronoUnit.MINUTES));
             return authCreationTime.compareTo(compareTime) < 0;
         }
         return true;

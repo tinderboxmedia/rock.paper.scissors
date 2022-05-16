@@ -3,7 +3,8 @@ package jansen.tom.rps.authentication;
 import jansen.tom.rps.account.Account;
 
 import javax.persistence.*;
-import java.time.Instant;
+import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
@@ -17,7 +18,7 @@ public class Authentication {
     private UUID token;
 
     @Column(nullable = false)
-    private Instant creationTime;
+    private Timestamp creationTime;
 
     @Column(nullable = false)
     private AuthenticationStatus status;
@@ -30,7 +31,7 @@ public class Authentication {
 
     public Authentication(Account account, UUID token) {
         this.token = token;
-        this.creationTime = Instant.now();
+        this.creationTime = Timestamp.from(ZonedDateTime.now().toInstant());
         this.status = AuthenticationStatus.AWAIT;
         this.account = account;
     }
@@ -47,7 +48,7 @@ public class Authentication {
         return token;
     }
 
-    public Instant getCreationTime() {
+    public Timestamp getCreationTime() {
         return creationTime;
     }
 

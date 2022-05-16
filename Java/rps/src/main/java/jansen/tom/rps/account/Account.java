@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jansen.tom.rps.authentication.Authentication;
 
 import javax.persistence.*;
-import java.time.Instant;
+import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Entity
@@ -25,7 +26,7 @@ public class Account {
     private AccountStatus status;
 
     @Column(nullable = false)
-    private Instant creationTime;
+    private Timestamp creationTime;
 
     @OneToMany(mappedBy="account")
     private List<Authentication> authentications;
@@ -37,7 +38,7 @@ public class Account {
         this.email = email;
         this.role = AccountRole.USER;
         this.status = AccountStatus.INACTIVE;
-        this.creationTime = Instant.now();
+        this.creationTime = Timestamp.from(ZonedDateTime.now().toInstant());
     }
 
     public enum AccountStatus {
@@ -76,7 +77,7 @@ public class Account {
         this.role = role;
     }
 
-    public Instant getCreationTime() {
+    public Timestamp getCreationTime() {
         return creationTime;
     }
 

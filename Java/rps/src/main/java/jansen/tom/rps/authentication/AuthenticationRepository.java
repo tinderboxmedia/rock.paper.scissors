@@ -4,7 +4,7 @@ import jansen.tom.rps.account.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.Instant;
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,7 +12,7 @@ import java.util.UUID;
 public interface AuthenticationRepository extends JpaRepository<Authentication, Long> {
 
     List<Authentication> findByAccountOrderByIdDesc(Account account);
-    List<Authentication> findByCreationTimeGreaterThanEqual(Instant time);
+    List<Authentication> findByCreationTimeGreaterThanEqual(Timestamp time);
     boolean existsByToken(UUID token);
 
 }
