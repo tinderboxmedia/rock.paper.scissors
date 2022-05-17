@@ -29,13 +29,16 @@ public class AccountService {
     AuthenticationRepository authenticationRepository;
 
     @Value("${authentication.account.limit}")
-    public String AUTH_ACCOUNT_REQUEST_LIMIT;
+    public Integer AUTH_ACCOUNT_REQUEST_LIMIT;
 
     @Value("${authentication.system.limit}")
-    public String AUTH_SYSTEM_REQUEST_LIMIT;
+    public Integer AUTH_SYSTEM_REQUEST_LIMIT;
 
     @Value("${authentication.system.time}")
-    public String AUTH_SYSTEM_REQUEST_TIME;
+    public Integer AUTH_SYSTEM_REQUEST_TIME;
+
+    @Value("${authentication.expiration.time}")
+    public Integer AUTH_LINK_EXPIRATION_TIME;
 
     public List<Account> getAllAccounts() {
         return accountRepository.findAll();
@@ -53,13 +56,12 @@ public class AccountService {
             if (oldAccount.getStatus() != Account.AccountStatus.LOCKED) {
                 authenticateAccount(oldAccount);
             }
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+            throw new ResponseStatusException(HttpStatus.LOCKED,
                     "It seems like that this account may be locked.");
         }
         if(isValid(email)) {
             Account newAccount = new Account(email.toLowerCase());
-            accountRepository.save(newAccount);
-            authenticateAccount(newAccount);
+            authenticateAccount(accountRepository.save(newAccount));
         }
         throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                 "This input is unfortunately not a valid email address.");
@@ -78,27 +80,25 @@ public class AccountService {
 
     private void authenticateAccount(Account account) {
         if(!accountMayAuthenticate(account)) {
-            String authLimit = AUTH_ACCOUNT_REQUEST_LIMIT;
-            String suffix = (authLimit.equals("1")) ? "" : "s";
+            Integer authLimit = AUTH_ACCOUNT_REQUEST_LIMIT;
+            String stringSuffix = (authLimit == 1) ? "" : "s";
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                    "You can send one authentication request every " + authLimit + " minute" + suffix + ".");
+                    "You can send one authentication request every " + authLimit + " minute" + stringSuffix + ".");
         }
         if(!systemMayAuthenticate()) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
                     "The authentication service is overloaded and not reachable.");
         }
         Authentication newAuthentication = new Authentication(account, uniqueToken());
-        authenticationRepository.save(newAuthentication);
-        // Calls the service that will manage all the actual sending
-        SendingService.sendAuthentication(account, newAuthentication);
+        new SendingService(authenticationRepository.save(newAuthentication).getToken(),
+                account.getEmail(), AUTH_LINK_EXPIRATION_TIME);
     }
 
     private boolean systemMayAuthenticate() {
         Timestamp compareTime = Timestamp.from(ZonedDateTime.now().toInstant()
-                .minus(Long.parseLong(AUTH_SYSTEM_REQUEST_TIME), ChronoUnit.MINUTES));
+                .minus(AUTH_SYSTEM_REQUEST_TIME, ChronoUnit.MINUTES));
         List<Authentication> entryList = authenticationRepository.findByCreationTimeGreaterThanEqual(compareTime);
-        // Check if the system can manage all the authentication requests first
-        return entryList.size() <= Integer.parseInt(AUTH_SYSTEM_REQUEST_LIMIT);
+        return entryList.size() <= AUTH_SYSTEM_REQUEST_LIMIT;
     }
 
     private boolean accountMayAuthenticate(Account account) {
@@ -106,9 +106,9 @@ public class AccountService {
         if(!entryList.isEmpty()) {
             // Check if an account did not reach their auth request limits
             Timestamp authCreationTime = entryList.get(0).getCreationTime();
-            Timestamp compareTime = Timestamp.from(ZonedDateTime.now().toInstant()
-                    .minus(Long.parseLong(AUTH_ACCOUNT_REQUEST_LIMIT), ChronoUnit.MINUTES));
-            return authCreationTime.compareTo(compareTime) < 0;
+            Timestamp currentTimestamp = Timestamp.from(ZonedDateTime.now().toInstant()
+                    .minus(AUTH_ACCOUNT_REQUEST_LIMIT, ChronoUnit.MINUTES));
+            return authCreationTime.compareTo(currentTimestamp) < 0;
         }
         return true;
     }

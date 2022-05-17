@@ -1,6 +1,7 @@
 package jansen.tom.rps.authentication;
 
 import jansen.tom.rps.account.Account;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -14,6 +15,7 @@ public class Authentication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Type(type="uuid-char")
     @Column(unique = true, nullable = false)
     private UUID token;
 

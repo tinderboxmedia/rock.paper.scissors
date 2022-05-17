@@ -1,20 +1,21 @@
 package jansen.tom.rps.authentication.sending;
 
-import jansen.tom.rps.account.Account;
-import jansen.tom.rps.authentication.Authentication;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.UUID;
+
 public class SendingService {
 
-    public static void sendAuthentication(Account account, Authentication authentication) {
+    public SendingService(UUID token, String email, Integer expire) {
 
-        // Placeholder until we can actually send out the authentication
-        System.out.println("Account [" + account.getEmail() + "] and " +
-                "authentication [" + authentication.getToken() + "] are saved.");
+        // Placeholder until we can really send auth links
+        System.out.println("Account [" + email + "] and " +
+                "authentication [" + token + "] are saved. Link is valid " +
+                "for " + expire + " minute" + ((expire == 1) ? "" : "s") + ".");
         // Only if the sending itself is also successful
         throw new ResponseStatusException(HttpStatus.OK,
-                "Success message. We still need to get send feedback.");
+                "If this is a valid email address we have send you a magic link.");
 
     }
 
