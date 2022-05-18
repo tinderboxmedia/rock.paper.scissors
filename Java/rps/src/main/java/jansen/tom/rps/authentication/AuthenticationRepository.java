@@ -1,6 +1,7 @@
 package jansen.tom.rps.authentication;
 
 import jansen.tom.rps.account.Account;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,8 +12,10 @@ import java.util.UUID;
 
 @Repository
 public interface AuthenticationRepository extends JpaRepository<Authentication, Long> {
-    List<Authentication> findByAccountOrderByIdDesc(Account account);
-    List<Authentication> findByCreationTimeGreaterThanEqual(Timestamp time);
+    List<Authentication> findByStatusAndCreationTimeLessThan(Authentication.AuthenticationStatus status, Timestamp time);
+    boolean existsByAccountAndStatus(Account account, Authentication.AuthenticationStatus status);
+    List<Authentication> findByCreationTimeGreaterThan(Timestamp time, Pageable pageable);
+    Optional<Authentication> findFirstByAccountOrderByIdDesc(Account account);
     Optional<Authentication> findByToken(UUID token);
     boolean existsByToken(UUID token);
 }

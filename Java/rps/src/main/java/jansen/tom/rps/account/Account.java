@@ -28,7 +28,7 @@ public class Account {
     @Column(nullable = false)
     private Timestamp creationTime;
 
-    @OneToMany(mappedBy="account")
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Authentication> authentications;
 
     // Deserialization

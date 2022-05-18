@@ -22,13 +22,13 @@ import java.util.UUID;
 public class AuthenticationService {
 
     @Autowired
-    AuthenticationRepository authenticationRepository;
+    private AuthenticationRepository authenticationRepository;
 
     @Autowired
-    AuthorisationService authorisationService;
+    private AuthorisationService authorisationService;
 
     @Autowired
-    AccountRepository accountRepository;
+    private AccountRepository accountRepository;
 
     @Value("${authentication.expiration.time}")
     public Integer AUTH_LINK_EXPIRATION_TIME;
@@ -70,7 +70,6 @@ public class AuthenticationService {
         authorisationService.accountAuthorisation(new Authorisation(account));
     }
 
-    // We also call this method on the scheduled annotation to keep db fresh
     public Authentication checkExpiredAndUpdate(Authentication authentication) {
         if(authentication.getStatus() == Authentication.AuthenticationStatus.AWAIT) {
             Timestamp currentTimestamp = Timestamp.from(ZonedDateTime.now().toInstant());

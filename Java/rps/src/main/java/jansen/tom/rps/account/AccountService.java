@@ -6,6 +6,7 @@ import jansen.tom.rps.authentication.sending.SendingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,10 +24,10 @@ import java.util.regex.Pattern;
 public class AccountService {
 
     @Autowired
-    AccountRepository accountRepository;
+    private AccountRepository accountRepository;
 
     @Autowired
-    AuthenticationRepository authenticationRepository;
+    private AuthenticationRepository authenticationRepository;
 
     @Value("${authentication.account.limit}")
     public Integer AUTH_ACCOUNT_REQUEST_LIMIT;
@@ -95,17 +96,20 @@ public class AccountService {
     }
 
     private boolean systemMayAuthenticate() {
+        // AUTH_SYSTEM_REQUEST_LIMIT is allowed but no more
+        int systemOverloads = AUTH_SYSTEM_REQUEST_LIMIT + 1;
         Timestamp compareTime = Timestamp.from(ZonedDateTime.now().toInstant()
                 .minus(AUTH_SYSTEM_REQUEST_TIME, ChronoUnit.MINUTES));
-        List<Authentication> entryList = authenticationRepository.findByCreationTimeGreaterThanEqual(compareTime);
-        return entryList.size() <= AUTH_SYSTEM_REQUEST_LIMIT;
+        List<Authentication> limitedList = authenticationRepository.findByCreationTimeGreaterThan(
+                compareTime, PageRequest.of(0, systemOverloads));
+        return limitedList.size() < systemOverloads;
     }
 
     private boolean accountMayAuthenticate(Account account) {
-        List<Authentication> entryList = authenticationRepository.findByAccountOrderByIdDesc(account);
-        if(!entryList.isEmpty()) {
+        Optional<Authentication> lastEntry = authenticationRepository.findFirstByAccountOrderByIdDesc(account);
+        if(lastEntry.isPresent()) {
             // Check if an account did not reach their auth request limits
-            Timestamp authCreationTime = entryList.get(0).getCreationTime();
+            Timestamp authCreationTime = lastEntry.get().getCreationTime();
             Timestamp currentTimestamp = Timestamp.from(ZonedDateTime.now().toInstant()
                     .minus(AUTH_ACCOUNT_REQUEST_LIMIT, ChronoUnit.MINUTES));
             return authCreationTime.compareTo(currentTimestamp) < 0;
