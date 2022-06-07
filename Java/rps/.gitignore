@@ -1,3 +1,4 @@
+### Base ###
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
@@ -28,9 +29,6 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
-
-### VS Code ###
-.vscode/
 
 ### Properties ###
 application-restricted.properties

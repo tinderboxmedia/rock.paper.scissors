@@ -1,0 +1,19 @@
+### Base ###
+.angular
+/dist/
+*.log
+
+### Modules ###
+node_modules
+
+### Logs ###
+npm-debug.log
+yarn-error.log
+.build-analytics
+.history
+
+### Users ###
+.ng-dev.user*
+
+### VS Code ###
+.vscode

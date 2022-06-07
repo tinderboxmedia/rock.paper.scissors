@@ -8,6 +8,8 @@ import java.util.Optional;
 
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
+
     List<Account> findByStatus(Account.AccountStatus status);
     Optional<Account> findByEmailIgnoreCase(String email);
+
 }

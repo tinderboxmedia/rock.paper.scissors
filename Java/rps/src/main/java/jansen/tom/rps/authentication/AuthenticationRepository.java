@@ -12,10 +12,14 @@ import java.util.UUID;
 
 @Repository
 public interface AuthenticationRepository extends JpaRepository<Authentication, Long> {
+
     List<Authentication> findByStatusAndCreationTimeLessThan(Authentication.AuthenticationStatus status, Timestamp time);
-    boolean existsByAccountAndStatus(Account account, Authentication.AuthenticationStatus status);
     List<Authentication> findByCreationTimeGreaterThan(Timestamp time, Pageable pageable);
+
     Optional<Authentication> findFirstByAccountOrderByIdDesc(Account account);
     Optional<Authentication> findByToken(UUID token);
+
+    boolean existsByAccountAndStatus(Account account, Authentication.AuthenticationStatus status);
     boolean existsByToken(UUID token);
+
 }

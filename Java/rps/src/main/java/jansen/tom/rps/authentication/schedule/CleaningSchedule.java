@@ -44,6 +44,7 @@ public class CleaningSchedule {
             }
             authenticationRepository.saveAll(expiredList);
         }
+        // Get the base list of the accounts that are inactive
         List<Account> baseAccountList = accountRepository.findByStatus(Account.AccountStatus.INACTIVE);
         List<Account> uselessAccounts = new ArrayList<>();
         // Creates useless accounts list
