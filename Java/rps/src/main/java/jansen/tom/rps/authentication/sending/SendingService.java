@@ -7,11 +7,12 @@ import java.util.UUID;
 
 public class SendingService {
 
-    public SendingService(UUID token, String email, Integer expire) {
+    public SendingService(UUID token, String email, String hash, Integer expire) {
+        String tokenHash = String.join("-", token.toString(), hash);
 
         // Placeholder until we can really send auth links
         System.out.println("Account [" + email + "] and " +
-                "authentication [" + token + "] are saved. Link is valid " +
+                "authentication [" + tokenHash + "] are saved. Link is valid " +
                 "for " + expire + " minute" + ((expire == 1) ? "" : "s") + ".");
         // Only if the sending itself is also successful
         throw new ResponseStatusException(HttpStatus.OK,
