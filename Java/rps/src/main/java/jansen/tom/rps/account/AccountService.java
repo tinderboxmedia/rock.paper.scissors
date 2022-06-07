@@ -61,8 +61,13 @@ public class AccountService {
                     "It seems like that this account may be locked.");
         }
         if(isValid(email)) {
-            Account newAccount = new Account(email.toLowerCase());
-            authenticateAccount(accountRepository.save(newAccount));
+            // Address length is valid
+            if(email.length() <= 64) {
+                Account newAccount = new Account(email.toLowerCase());
+                authenticateAccount(accountRepository.save(newAccount));
+            }
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                    "The email address that you tried to use is too long.");
         }
         throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                 "This input is unfortunately not a valid email address.");
