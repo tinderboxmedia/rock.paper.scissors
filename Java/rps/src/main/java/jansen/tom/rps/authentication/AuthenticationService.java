@@ -2,6 +2,7 @@ package jansen.tom.rps.authentication;
 
 import jansen.tom.rps.account.Account;
 import jansen.tom.rps.account.AccountRepository;
+import jansen.tom.rps.account.hashing.TokenHashing;
 import jansen.tom.rps.authorisation.Authorisation;
 import jansen.tom.rps.authorisation.AuthorisationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,16 +35,19 @@ public class AuthenticationService {
     @Value("${authentication.expiration.time}")
     public Integer AUTH_LINK_EXPIRATION_TIME;
 
-    public Authentication checkToken(UUID token) {
+    public Authentication checkToken(UUID token, String checksum) {
         Optional<Authentication> authentication = authenticationRepository.findByToken(token);
-        // Check if token is a valid one
+        // Checking if the token is valid
         if(authentication.isPresent()) {
             // From the authentication optional get account and get id
             Long accountId = authentication.get().getAccount().getId();
             Optional<Account> account = accountRepository.findById(accountId);
             // Token actually assigned
             if (account.isPresent()) {
-                isUsedOrExpired(authentication.get(), account.get());
+                Account validAccount = account.get();
+                if(Objects.equals(checksum, TokenHashing.tokenHash(validAccount))) {
+                    isUsedOrExpired(authentication.get(), validAccount);
+                }
             }
         }
         throw new ResponseStatusException(HttpStatus.NOT_FOUND,

@@ -4,12 +4,16 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jansen.tom.rps.authentication.Authentication;
 
 import javax.persistence.*;
+import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.util.List;
 
 @Entity
-@JsonIgnoreProperties("authentications")
+@JsonIgnoreProperties({
+        "authentications",
+        "hash"
+})
 public class Account {
 
     @Id
@@ -28,6 +32,9 @@ public class Account {
     @Column(nullable = false)
     private Timestamp creationTime;
 
+    @Column(nullable = false)
+    private byte[] hash;
+
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Authentication> authentications;
 
@@ -39,6 +46,7 @@ public class Account {
         this.role = AccountRole.USER;
         this.status = AccountStatus.INACTIVE;
         this.creationTime = Timestamp.from(ZonedDateTime.now().toInstant());
+        this.hash = getRandomNonce();
     }
 
     public enum AccountStatus {
@@ -47,6 +55,12 @@ public class Account {
 
     public enum AccountRole {
         USER, ADMIN
+    }
+
+    private byte[] getRandomNonce() {
+        byte[] nonce = new byte[16];
+        new SecureRandom().nextBytes(nonce);
+        return nonce;
     }
 
     public Long getId() {
@@ -79,6 +93,14 @@ public class Account {
 
     public Timestamp getCreationTime() {
         return creationTime;
+    }
+
+    public byte[] getHash() {
+        return hash;
+    }
+
+    public void setHash(byte[] hash) {
+        this.hash = hash;
     }
 
 }

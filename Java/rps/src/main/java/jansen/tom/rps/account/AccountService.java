@@ -1,6 +1,6 @@
 package jansen.tom.rps.account;
 
-import jansen.tom.rps.account.hashing.TokenHash;
+import jansen.tom.rps.account.hashing.TokenHashing;
 import jansen.tom.rps.authentication.Authentication;
 import jansen.tom.rps.authentication.AuthenticationRepository;
 import jansen.tom.rps.authentication.sending.SendingService;
@@ -21,10 +21,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Service
-@PropertySource({
-        "classpath:authentication.properties",
-        "classpath:application.properties"
-})
+@PropertySource("classpath:authentication.properties")
 public class AccountService {
 
     @Autowired
@@ -44,9 +41,6 @@ public class AccountService {
 
     @Value("${authentication.expiration.time}")
     public Integer AUTH_LINK_EXPIRATION_TIME;
-
-    @Value("${account.authentication.salt}")
-    public String AUTHENTICATION_LINK_SALT;
 
     public List<Account> getAllAccounts() {
         return accountRepository.findAll();
@@ -103,10 +97,9 @@ public class AccountService {
                     "The authentication service is overloaded and not reachable.");
         }
         String email = account.getEmail();
-        String salt = AUTHENTICATION_LINK_SALT;
         Authentication newAuthentication = new Authentication(account, uniqueToken());
         new SendingService(authenticationRepository.save(newAuthentication).getToken(),
-                email, TokenHash.getHash(email, salt), AUTH_LINK_EXPIRATION_TIME);
+                email, TokenHashing.tokenHash(account), AUTH_LINK_EXPIRATION_TIME);
     }
 
     private boolean systemMayAuthenticate() {
