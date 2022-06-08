@@ -21,12 +21,7 @@ Create and add an `application-restricted.properties` file into the main resourc
 spring.datasource.url=url
 spring.datasource.username=username
 spring.datasource.password=password
-
-# Authentication
-account.authentication.salt=salt
 ```
-
-Make sure that the `account.authentication.salt` is 16 characters long.
 
 **REST Response**
 
