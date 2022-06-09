@@ -25,7 +25,7 @@ spring.datasource.password=password
 
 **Database Connector**
 
-Make sure to change `spring.datasource.driver-class-name` to the right driver. Use `com.mysql.cj.jdbc.Driver` for a MySQL one and `org.mariadb.jdbc.Driver` for MariaDB databases.
+Make sure to change `spring.datasource.driver-class-name` to the right driver. For MySQL databases use `com.mysql.cj.jdbc.Driver` and `org.mariadb.jdbc.Driver` for MariaDB ones.
 
 If there is a discrepancy, it's be possible that timestamps inserted into the database omit their microseconds. These microseconds are used by the authentication checksums. Hence, double check to see if the database stores timestamps with these microseconds, else the user authentication will always fails.
 
