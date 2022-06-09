@@ -97,9 +97,9 @@ public class AccountService {
                     "The authentication service is overloaded and not reachable.");
         }
         String email = account.getEmail();
-        Authentication newAuthentication = new Authentication(account, uniqueToken());
-        new SendingService(authenticationRepository.save(newAuthentication).getToken(),
-                email, TokenHashing.tokenHash(account), AUTH_LINK_EXPIRATION_TIME);
+        Authentication authentication = authenticationRepository.save(new Authentication(account, uniqueToken()));
+        new SendingService(authentication.getToken(), email, TokenHashing.tokenHash(account, authentication),
+                AUTH_LINK_EXPIRATION_TIME);
     }
 
     private boolean systemMayAuthenticate() {

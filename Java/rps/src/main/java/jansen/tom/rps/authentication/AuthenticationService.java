@@ -45,7 +45,7 @@ public class AuthenticationService {
             // Token actually assigned
             if (account.isPresent()) {
                 Account validAccount = account.get();
-                if(Objects.equals(checksum, TokenHashing.tokenHash(validAccount))) {
+                if(Objects.equals(checksum, TokenHashing.tokenHash(validAccount, authentication.get()))) {
                     isUsedOrExpired(authentication.get(), validAccount);
                 }
             }

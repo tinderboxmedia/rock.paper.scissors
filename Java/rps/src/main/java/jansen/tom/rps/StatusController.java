@@ -3,7 +3,8 @@ package jansen.tom.rps;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Instant;
+import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @RestController
@@ -11,16 +12,16 @@ public class StatusController {
 
     public static class Status {
 
-        private final Instant dateTime;
+        private final Timestamp timestamp;
         private final UUID session;
 
         public Status() {
-            this.dateTime = Instant.now();
+            this.timestamp = Timestamp.from(ZonedDateTime.now().toInstant());
             this.session = UUID.randomUUID();
         }
 
-        public Instant getDateTime() {
-            return dateTime;
+        public Timestamp getTimestamp() {
+            return timestamp;
         }
 
         public UUID getSession() {

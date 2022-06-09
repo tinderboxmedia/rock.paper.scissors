@@ -25,7 +25,6 @@ public class AuthenticationController {
             String[] split = token.split("-");
             validToken = UUID.fromString(String.join("-",Arrays.copyOfRange(split, 0, 5)));
             validHash = split[5];
-            System.out.println(validHash.length());
             if (validHash.length() != 64) {
                 throw new Exception();
             }
