@@ -14,7 +14,7 @@ public class AccountController {
     @Autowired
     private AccountService accountService;
 
-    @GetMapping
+    @GetMapping(value = "all")
     public List<Account> getAllAccounts() {
         return accountService.getAllAccounts();
     }
@@ -24,9 +24,10 @@ public class AccountController {
         return accountService.getAccountById(id);
     }
 
+    // Allow all
     @PostMapping
-    public Account checkAccount(@RequestBody Account account) {
-        return accountService.checkAccount(account);
+    public Account checkAccount(@RequestBody(required = false) String email) {
+        return accountService.checkAccount(email);
     }
 
 }

@@ -16,8 +16,9 @@ public class AuthenticationController {
     @Autowired
     private AuthenticationService authenticationService;
 
+    // Allow all
     @PostMapping
-    public Authentication checkAccount(@RequestBody String token) {
+    public Authentication checkAccount(@RequestBody(required = false) String token) {
         // Improved scope
         String validHash;
         UUID validToken;

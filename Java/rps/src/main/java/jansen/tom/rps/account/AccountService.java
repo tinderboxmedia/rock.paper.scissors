@@ -50,8 +50,7 @@ public class AccountService {
         return accountRepository.findById(id);
     }
 
-    public Account checkAccount(Account account) {
-        String email = account.getEmail();
+    public Account checkAccount(String email) {
         Optional<Account> foundAccount = accountRepository.findByEmailIgnoreCase(email);
         if(foundAccount.isPresent()) {
             Account oldAccount = foundAccount.get();
