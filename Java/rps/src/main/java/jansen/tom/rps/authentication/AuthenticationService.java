@@ -3,8 +3,7 @@ package jansen.tom.rps.authentication;
 import jansen.tom.rps.account.Account;
 import jansen.tom.rps.account.AccountRepository;
 import jansen.tom.rps.account.hashing.TokenHashing;
-import jansen.tom.rps.authorisation.Authorisation;
-import jansen.tom.rps.authorisation.AuthorisationService;
+import jansen.tom.rps.security.JwtUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
@@ -27,10 +26,10 @@ public class AuthenticationService {
     private AuthenticationRepository authenticationRepository;
 
     @Autowired
-    private AuthorisationService authorisationService;
+    private AccountRepository accountRepository;
 
     @Autowired
-    private AccountRepository accountRepository;
+    private JwtUtilities jwtUtilities;
 
     @Value("${authentication.expiration.time}")
     public Integer AUTH_LINK_EXPIRATION_TIME;
@@ -71,8 +70,7 @@ public class AuthenticationService {
             account.setStatus(Account.AccountStatus.VERIFIED);
             accountRepository.save(account);
         }
-        // As the authentication worked we now proceed to authorise account
-        authorisationService.accountAuthorisation(new Authorisation(account));
+        throw new ResponseStatusException(HttpStatus.OK, jwtUtilities.generateToken(account));
     }
 
     public Authentication checkExpiredAndUpdate(Authentication authentication) {

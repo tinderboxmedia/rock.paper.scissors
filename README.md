@@ -21,6 +21,10 @@ Create and add an `application-restricted.properties` file into the main resourc
 spring.datasource.url=url
 spring.datasource.username=username
 spring.datasource.password=password
+
+
+# Json Web Token
+jwt.secret.token=token
 ```
 
 **Database Connector**
