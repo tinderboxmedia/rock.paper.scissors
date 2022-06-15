@@ -33,7 +33,7 @@ public class JwtUtilities {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public Date extractExpiration(String token) {
+    private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
@@ -46,7 +46,7 @@ public class JwtUtilities {
         return Jwts.parser().setSigningKey(JWT_SECRET_TOKEN).parseClaimsJws(token).getBody();
     }
 
-    private Boolean isTokenExpired(String token) {
+    public Boolean isTokenExpired(String token) {
         return extractExpiration(token).before(Timestamp.from(ZonedDateTime.now().toInstant()));
     }
 
@@ -57,14 +57,13 @@ public class JwtUtilities {
 
     private String createToken(Map<String, Object> claims, String subject) {
         Timestamp issuedAt = Timestamp.from(ZonedDateTime.now().toInstant());
-        Timestamp expiration = Timestamp.from(issuedAt.toInstant().plus(JWT_EXPIRATION_TIME, ChronoUnit.DAYS));
+        Timestamp expiration = Timestamp.from(issuedAt.toInstant().plus(JWT_EXPIRATION_TIME, ChronoUnit.MINUTES));
         return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(issuedAt).setExpiration(expiration)
                 .signWith(SignatureAlgorithm.HS256, JWT_SECRET_TOKEN).compact();
     }
 
     public boolean validateToken(String token, Account account) {
-        final String username = extractUsername(token);
-        return (username.equals(account.getEmail()) && !isTokenExpired(token));
+        return extractUsername(token).equals(account.getEmail());
     }
 
 }

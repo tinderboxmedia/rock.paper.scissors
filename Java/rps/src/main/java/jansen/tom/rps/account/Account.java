@@ -12,6 +12,7 @@ import java.util.List;
 @Entity
 @JsonIgnoreProperties({
         "authentications",
+        "creationTime",
         "hash"
 })
 public class Account {
@@ -33,7 +34,7 @@ public class Account {
     private Timestamp creationTime;
 
     @Column(nullable = false)
-    private byte[] hash;
+    private String hash;
 
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Authentication> authentications;
@@ -57,10 +58,18 @@ public class Account {
         USER, ADMIN
     }
 
-    private byte[] getRandomNonce() {
+    private String getRandomNonce() {
         byte[] nonce = new byte[16];
         new SecureRandom().nextBytes(nonce);
-        return nonce;
+        return bytesToHex(nonce);
+    }
+
+    public static String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 
     public Long getId() {
@@ -95,11 +104,11 @@ public class Account {
         return creationTime;
     }
 
-    public byte[] getHash() {
+    public String getHash() {
         return hash;
     }
 
-    public void setHash(byte[] hash) {
+    public void setHash(String hash) {
         this.hash = hash;
     }
 

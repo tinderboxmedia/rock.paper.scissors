@@ -14,7 +14,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Objects;
 import java.util.Optional;
 
 @Component
@@ -33,40 +32,38 @@ public class JwtFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
-        if(
-                !(Objects.equals(path, "/api/authentication") && Objects.equals(method, "POST")) &&
-                !(Objects.equals(path, "/api/account") && Objects.equals(method, "POST")) &&
-                !Objects.equals(path, "/favicon.ico") &&
-                !Objects.equals(path, "/error") &&
-                !Objects.equals(path, "/"))
-        {
+        // Is for later use
+        String email = null;
+        String jwt = null;
 
-            // Is for later use
-            String email = null;
-            String jwt = null;
-
-            try {
-                String bearerToken = request.getHeader("Authorization");
-                if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-                    jwt = bearerToken.substring(7);
-                    email = jwtUtilities.extractUsername(jwt);
-                }
-            } catch(Exception error) {
-                // Ignoring JWT errors
+        try {
+            String bearerToken = request.getHeader("Authorization");
+            if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+                jwt = bearerToken.substring(7);
+                email = jwtUtilities.extractUsername(jwt);
             }
+        } catch(Exception error) {
+            // Ignoring JWT errors
+        }
 
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                Optional<Account> foundAccount = accountRepository.findByEmailIgnoreCase(email);
-                if(foundAccount.isPresent()) {
-                    Account currentAccount = foundAccount.get();
-                    if(jwtUtilities.validateToken(jwt, currentAccount)) {
-                        if (currentAccount.getStatus() == Account.AccountStatus.VERIFIED) {
-                            email = currentAccount.getEmail();
-                            // We will allow the user of the json web token to use selected endpoint
-                            var authentication = new UsernamePasswordAuthenticationToken(email, null,
-                                    AuthorityUtils.createAuthorityList(currentAccount.getRole().toString()));
-                            SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            Optional<Account> foundAccount = accountRepository.findByEmailIgnoreCase(email);
+            if(foundAccount.isPresent()) {
+                Account currentAccount = foundAccount.get();
+                if(jwtUtilities.validateToken(jwt, currentAccount)) {
+                    if (currentAccount.getStatus() == Account.AccountStatus.VERIFIED) {
+                        if(jwtUtilities.isTokenExpired(jwt)) {
+
+                            // ...
+                            System.out.println("The token should be refreshed...");
+                            // ...
+
                         }
+                        email = currentAccount.getEmail();
+                        // We will allow the user of the json web token to use selected endpoint
+                        var authentication = new UsernamePasswordAuthenticationToken(email, null,
+                                AuthorityUtils.createAuthorityList(currentAccount.getRole().toString()));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
                     }
                 }
             }

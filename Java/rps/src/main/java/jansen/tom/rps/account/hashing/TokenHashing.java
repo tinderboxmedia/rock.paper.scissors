@@ -23,23 +23,14 @@ public class TokenHashing {
         return md.digest(input);
     }
 
-    private static String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
-        }
-        return sb.toString();
-    }
-
     static public String tokenHash(Account account, Authentication authentication) {
-        // Email, salt plus time bytes
-        byte[] salt = account.getHash();
+        byte[] salt = account.getHash().getBytes();
         byte[] email = account.getEmail().getBytes(UTF_8);
         byte[] time = authentication.getCreationTime().toString().getBytes(UTF_8);
         int bufferLength = salt.length + email.length + time.length;
         // Before we can digest the token hash we must first add all the elements together in array
         byte[] byteHash = ByteBuffer.allocate(bufferLength).put(salt).put(email).put(time).array();
-        return bytesToHex(digest(byteHash));
+        return Account.bytesToHex(digest(byteHash));
     }
 
 }
