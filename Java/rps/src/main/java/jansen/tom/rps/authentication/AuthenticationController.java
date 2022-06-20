@@ -1,5 +1,6 @@
 package jansen.tom.rps.authentication;
 
+import jansen.tom.rps.security.Jwt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class AuthenticationController {
 
     // Allow all
     @PostMapping
-    public Authentication checkAccount(@RequestBody(required = false) String token) {
+    public Jwt checkAccount(@RequestBody(required = false) String token) {
         // Improved scope
         String validHash;
         UUID validToken;

@@ -3,6 +3,7 @@ package jansen.tom.rps.authentication;
 import jansen.tom.rps.account.Account;
 import jansen.tom.rps.account.AccountRepository;
 import jansen.tom.rps.account.hashing.TokenHashing;
+import jansen.tom.rps.security.Jwt;
 import jansen.tom.rps.security.JwtUtilities;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,9 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @PropertySource("classpath:authentication.properties")
@@ -34,7 +33,7 @@ public class AuthenticationService {
     @Value("${authentication.expiration.time}")
     public Integer AUTH_LINK_EXPIRATION_TIME;
 
-    public Authentication checkToken(UUID token, String checksum) {
+    public Jwt checkToken(UUID token, String checksum) {
         Optional<Authentication> authentication = authenticationRepository.findByToken(token);
         // Checking if the token is valid
         if(authentication.isPresent()) {
@@ -45,7 +44,7 @@ public class AuthenticationService {
             if (account.isPresent()) {
                 Account validAccount = account.get();
                 if(Objects.equals(checksum, TokenHashing.tokenHash(validAccount, authentication.get()))) {
-                    isUsedOrExpired(authentication.get(), validAccount);
+                    return isUsedOrExpired(authentication.get(), validAccount);
                 }
             }
         }
@@ -53,7 +52,7 @@ public class AuthenticationService {
                 "Could not find the token or the associated account.");
     }
 
-    private void isUsedOrExpired(Authentication authentication, Account account) {
+    private Jwt isUsedOrExpired(Authentication authentication, Account account) {
         authentication = checkExpiredAndUpdate(authentication);
         if(authentication.getStatus() == Authentication.AuthenticationStatus.USED) {
             throw new ResponseStatusException(HttpStatus.ALREADY_REPORTED,
@@ -70,7 +69,11 @@ public class AuthenticationService {
             account.setStatus(Account.AccountStatus.VERIFIED);
             accountRepository.save(account);
         }
-        throw new ResponseStatusException(HttpStatus.OK, jwtUtilities.generateToken(account));
+        // Provide JWTs
+        return new Jwt(
+                jwtUtilities.generateAccessToken(account),
+                jwtUtilities.generateRefreshToken(account)
+        );
     }
 
     public Authentication checkExpiredAndUpdate(Authentication authentication) {
