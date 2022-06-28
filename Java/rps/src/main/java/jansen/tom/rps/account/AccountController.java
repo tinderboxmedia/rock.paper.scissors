@@ -1,10 +1,8 @@
 package jansen.tom.rps.account;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin(maxAge = 3600)
@@ -14,14 +12,16 @@ public class AccountController {
     @Autowired
     private AccountService accountService;
 
-    @GetMapping(value = "all")
-    public List<Account> getAllAccounts() {
-        return accountService.getAllAccounts();
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value = "admin")
+    public String getAdmin() {
+        return "I'm ADMIN";
     }
 
-    @GetMapping(value = "{id}")
-    public Optional<Account> getAccountById(@PathVariable Long id) {
-        return accountService.getAccountById(id);
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping(value = "user")
+    public String getUser() {
+        return "I'm USER";
     }
 
     // Allow all

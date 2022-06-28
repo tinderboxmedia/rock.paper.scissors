@@ -11,16 +11,10 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
 
 @Service
-@PropertySource({
-        "classpath:authentication.properties",
-        "classpath:application.properties"
-})
+@PropertySource("classpath:authentication.properties")
 public class JwtUtilities {
 
     @Value("${jwt.expiration.time}")
@@ -36,8 +30,8 @@ public class JwtUtilities {
         return extractClaim(token, Claims::getSubject);
     }
 
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+    public String extractAccess(String token) {
+        return extractClaim(token, Claims::getIssuer);
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -49,36 +43,22 @@ public class JwtUtilities {
         return Jwts.parser().setSigningKey(JWT_SECRET_TOKEN).parseClaimsJws(token).getBody();
     }
 
-    public Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(Timestamp.from(ZonedDateTime.now().toInstant()));
-    }
-
-    public String generateAccessToken(Account account) {
-        Map<String, Object> claims = new HashMap<>();
+    public String generateToken(Account account, Boolean refresh) {
         Timestamp expiration = Timestamp.from(
-                ZonedDateTime.now().toInstant().plus(JWT_EXPIRATION_TIME, ChronoUnit.MINUTES)
-        );
-        return Jwts.builder()
-                .setClaims(claims)
-                .setExpiration(expiration)
-                .setSubject(account.getEmail())
-                .signWith(SignatureAlgorithm.HS256, JWT_SECRET_TOKEN)
-                .compact();
-    }
-
-    public String generateRefreshToken(Account account) {
-        Timestamp expiration = Timestamp.from(
-                ZonedDateTime.now().toInstant().plus(JWT_REFRESHING_TIME, ChronoUnit.DAYS)
+                ZonedDateTime.now().toInstant().plus(
+                        (refresh) ? JWT_REFRESHING_TIME : JWT_EXPIRATION_TIME,
+                        (refresh) ? ChronoUnit.DAYS : ChronoUnit.MINUTES)
         );
         return Jwts.builder()
                 .setExpiration(expiration)
                 .setSubject(account.getEmail())
+                .setIssuer((refresh) ? "refresh" : "access")
                 .signWith(SignatureAlgorithm.HS256, JWT_SECRET_TOKEN)
                 .compact();
     }
 
     public boolean validateToken(String token, Account account) {
-        return extractUsername(token).equals(account.getEmail());
+        return (extractUsername(token).equals(account.getEmail()) && extractAccess(token).equals("access"));
     }
 
 }

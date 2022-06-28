@@ -18,8 +18,8 @@ public class RpsApplication {
 	CommandLineRunner run(RoleService roleService) {
 		// Creates roles
 		return args -> {
-			roleService.saveRole("ADMIN");
-			roleService.saveRole("USER");
+			roleService.saveRole("ROLE_ADMIN");
+			roleService.saveRole("ROLE_USER");
 		};
 	}
 

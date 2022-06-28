@@ -2,8 +2,10 @@ package jansen.tom.rps.security;
 
 import jansen.tom.rps.account.Account;
 import jansen.tom.rps.account.AccountRepository;
+import jansen.tom.rps.account.role.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -13,7 +15,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -56,19 +61,16 @@ public class JwtFilter extends OncePerRequestFilter {
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 Optional<Account> foundAccount = accountRepository.findByEmailIgnoreCase(email);
                 if (foundAccount.isPresent()) {
-                    Account currentAccount = foundAccount.get();
-                    if (jwtUtilities.validateToken(jwt, currentAccount)) {
-                        if (currentAccount.getStatus() == Account.AccountStatus.VERIFIED) {
-                            if (jwtUtilities.isTokenExpired(jwt)) {
-
-                                // ...
-                                System.out.println("The token should be refreshed...");
-                                // ...
-
+                    Account account = foundAccount.get();
+                    if (jwtUtilities.validateToken(jwt, account)) {
+                        if (account.getStatus() == Account.AccountStatus.VERIFIED) {
+                            Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
+                            Set<Role> roles = account.getRoles();
+                            email = account.getEmail();
+                            for(Role role : roles) {
+                                authorities.add(new SimpleGrantedAuthority(role.getName()));
                             }
-                            email = currentAccount.getEmail();
-                            // We will allow the user of the json web token to use selected endpoint
-                            var authentication = new UsernamePasswordAuthenticationToken(email, null, null);
+                            var authentication = new UsernamePasswordAuthenticationToken(email, null, authorities);
                             SecurityContextHolder.getContext().setAuthentication(authentication);
                         }
                     }

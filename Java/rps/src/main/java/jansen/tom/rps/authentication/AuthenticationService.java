@@ -71,8 +71,8 @@ public class AuthenticationService {
         }
         // Provide JWTs
         return new Jwt(
-                jwtUtilities.generateAccessToken(account),
-                jwtUtilities.generateRefreshToken(account)
+                jwtUtilities.generateToken(account, false),
+                jwtUtilities.generateToken(account, true)
         );
     }
 

@@ -68,7 +68,7 @@ public class AccountService {
         if(isValid(email)) {
             // Address length is valid
             if(email.length() <= 64) {
-                Optional<Role> role = roleRepository.getRoleByNameIgnoreCase("USER");
+                Optional<Role> role = roleRepository.getRoleByNameIgnoreCase("ROLE_USER");
                 if (role.isPresent()) {
                     Role validRole = role.get();
                     Account newAccount = new Account(email.toLowerCase(), validRole);
