@@ -29,10 +29,10 @@ public class CleaningSchedule {
     private AuthenticationRepository authenticationRepository;
 
     @Value("${authentication.expiration.time}")
-    public Integer AUTH_LINK_EXPIRATION_TIME;
+    private Integer AUTH_LINK_EXPIRATION_TIME;
 
     @Scheduled(fixedDelayString = "${cleaning.in.milliseconds}")
-    public void TokensAndAccount() {
+    private void TokensAndAccount() {
         Timestamp expireCheck = Timestamp.from(ZonedDateTime.now().toInstant()
                 .minus(AUTH_LINK_EXPIRATION_TIME, ChronoUnit.MINUTES));
         List<Authentication> expiredList = authenticationRepository.findByStatusAndCreationTimeLessThan(

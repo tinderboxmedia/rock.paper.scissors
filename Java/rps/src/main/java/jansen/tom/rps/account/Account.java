@@ -1,13 +1,16 @@
 package jansen.tom.rps.account;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jansen.tom.rps.account.role.Role;
 import jansen.tom.rps.authentication.Authentication;
 
 import javax.persistence.*;
 import java.security.SecureRandom;
 import java.sql.Timestamp;
 import java.time.ZonedDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @JsonIgnoreProperties({
@@ -24,8 +27,9 @@ public class Account {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
-    private AccountRole role;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "account_roles", inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
 
     @Column(nullable = false)
     private AccountStatus status;
@@ -42,20 +46,16 @@ public class Account {
     // Deserialization
     public Account() {}
 
-    public Account(String email) {
+    public Account(String email, Role role) {
         this.email = email;
-        this.role = AccountRole.USER;
         this.status = AccountStatus.INACTIVE;
         this.creationTime = Timestamp.from(ZonedDateTime.now().toInstant());
         this.hash = getRandomNonce();
+        this.roles.add(role);
     }
 
     public enum AccountStatus {
         INACTIVE, VERIFIED, LOCKED
-    }
-
-    public enum AccountRole {
-        USER, ADMIN
     }
 
     private String getRandomNonce() {
@@ -92,12 +92,12 @@ public class Account {
         this.status = status;
     }
 
-    public AccountRole getRole() {
-        return role;
+    public Set<Role> getRoles() {
+        return roles;
     }
 
-    public void setRole(AccountRole role) {
-        this.role = role;
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
     }
 
     public Timestamp getCreationTime() {

@@ -1,6 +1,8 @@
 package jansen.tom.rps.account;
 
 import jansen.tom.rps.account.hashing.TokenHashing;
+import jansen.tom.rps.account.role.Role;
+import jansen.tom.rps.account.role.RoleRepository;
 import jansen.tom.rps.authentication.Authentication;
 import jansen.tom.rps.authentication.AuthenticationRepository;
 import jansen.tom.rps.authentication.sending.SendingService;
@@ -30,6 +32,9 @@ public class AccountService {
     @Autowired
     private AuthenticationRepository authenticationRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
     @Value("${authentication.account.limit}")
     public Integer AUTH_ACCOUNT_REQUEST_LIMIT;
 
@@ -41,6 +46,15 @@ public class AccountService {
 
     @Value("${authentication.expiration.time}")
     public Integer AUTH_LINK_EXPIRATION_TIME;
+
+    @Value("${sending.service.development}")
+    public Boolean SENDING_SERVICE_MODES;
+
+    @Value("${sending.service.access}")
+    public String SENDING_ACCESS_TOKEN;
+
+    @Value("${sending.service.url}")
+    public String SENDING_ACCESS_URL;
 
     public List<Account> getAllAccounts() {
         return accountRepository.findAll();
@@ -63,8 +77,15 @@ public class AccountService {
         if(isValid(email)) {
             // Address length is valid
             if(email.length() <= 64) {
-                Account newAccount = new Account(email.toLowerCase());
-                authenticateAccount(accountRepository.save(newAccount));
+                Optional<Role> role = roleRepository.getRoleByNameIgnoreCase("USER");
+                if (role.isPresent()) {
+                    Role validRole = role.get();
+                    Account newAccount = new Account(email.toLowerCase(), validRole);
+                    authenticateAccount(accountRepository.save(newAccount));
+                } else {
+                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                            "There seems to be an issue with your assigned role");
+                }
             }
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
                     "The email address that you tried to use is too long.");
@@ -98,7 +119,7 @@ public class AccountService {
         String email = account.getEmail();
         Authentication authentication = authenticationRepository.save(new Authentication(account, uniqueToken()));
         new SendingService(authentication.getToken(), email, TokenHashing.tokenHash(account, authentication),
-                AUTH_LINK_EXPIRATION_TIME);
+                SENDING_ACCESS_URL, SENDING_ACCESS_TOKEN, AUTH_LINK_EXPIRATION_TIME, SENDING_SERVICE_MODES);
     }
 
     private boolean systemMayAuthenticate() {

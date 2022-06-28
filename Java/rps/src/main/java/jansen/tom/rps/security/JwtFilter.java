@@ -4,7 +4,6 @@ import jansen.tom.rps.account.Account;
 import jansen.tom.rps.account.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -32,38 +31,46 @@ public class JwtFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
-        // Is for later use
-        String email = null;
-        String jwt = null;
+        // We make sure that all the public paths are not filtered through
+        if(!(path.equals("/api/authentication") && method.equals("POST")) &&
+           !(path.equals("/api/account") && method.equals("POST")) &&
+           !path.equals("/favicon.ico") &&
+           !path.equals("/error") &&
+           !path.equals("/"))
+        {
 
-        try {
-            String bearerToken = request.getHeader("Authorization");
-            if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-                jwt = bearerToken.substring(7);
-                email = jwtUtilities.extractUsername(jwt);
+            // Is for later use
+            String email = null;
+            String jwt = null;
+
+            try {
+                String bearerToken = request.getHeader("Authorization");
+                if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+                    jwt = bearerToken.substring(7);
+                    email = jwtUtilities.extractUsername(jwt);
+                }
+            } catch (Exception error) {
+                // Ignoring JWT errors
             }
-        } catch(Exception error) {
-            // Ignoring JWT errors
-        }
 
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            Optional<Account> foundAccount = accountRepository.findByEmailIgnoreCase(email);
-            if(foundAccount.isPresent()) {
-                Account currentAccount = foundAccount.get();
-                if(jwtUtilities.validateToken(jwt, currentAccount)) {
-                    if (currentAccount.getStatus() == Account.AccountStatus.VERIFIED) {
-                        if(jwtUtilities.isTokenExpired(jwt)) {
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                Optional<Account> foundAccount = accountRepository.findByEmailIgnoreCase(email);
+                if (foundAccount.isPresent()) {
+                    Account currentAccount = foundAccount.get();
+                    if (jwtUtilities.validateToken(jwt, currentAccount)) {
+                        if (currentAccount.getStatus() == Account.AccountStatus.VERIFIED) {
+                            if (jwtUtilities.isTokenExpired(jwt)) {
 
-                            // ...
-                            System.out.println("The token should be refreshed...");
-                            // ...
+                                // ...
+                                System.out.println("The token should be refreshed...");
+                                // ...
 
+                            }
+                            email = currentAccount.getEmail();
+                            // We will allow the user of the json web token to use selected endpoint
+                            var authentication = new UsernamePasswordAuthenticationToken(email, null, null);
+                            SecurityContextHolder.getContext().setAuthentication(authentication);
                         }
-                        email = currentAccount.getEmail();
-                        // We will allow the user of the json web token to use selected endpoint
-                        var authentication = new UsernamePasswordAuthenticationToken(email, null,
-                                AuthorityUtils.createAuthorityList(currentAccount.getRole().toString()));
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
                     }
                 }
             }
