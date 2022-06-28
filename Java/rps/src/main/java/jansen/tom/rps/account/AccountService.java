@@ -35,26 +35,17 @@ public class AccountService {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private SendingService sendingService;
+
     @Value("${authentication.account.limit}")
-    public Integer AUTH_ACCOUNT_REQUEST_LIMIT;
+    private Integer AUTH_ACCOUNT_REQUEST_LIMIT;
 
     @Value("${authentication.system.limit}")
-    public Integer AUTH_SYSTEM_REQUEST_LIMIT;
+    private Integer AUTH_SYSTEM_REQUEST_LIMIT;
 
     @Value("${authentication.system.time}")
-    public Integer AUTH_SYSTEM_REQUEST_TIME;
-
-    @Value("${authentication.expiration.time}")
-    public Integer AUTH_LINK_EXPIRATION_TIME;
-
-    @Value("${sending.service.development}")
-    public Boolean SENDING_SERVICE_MODES;
-
-    @Value("${sending.service.access}")
-    public String SENDING_ACCESS_TOKEN;
-
-    @Value("${sending.service.url}")
-    public String SENDING_ACCESS_URL;
+    private Integer AUTH_SYSTEM_REQUEST_TIME;
 
     public List<Account> getAllAccounts() {
         return accountRepository.findAll();
@@ -118,8 +109,8 @@ public class AccountService {
         }
         String email = account.getEmail();
         Authentication authentication = authenticationRepository.save(new Authentication(account, uniqueToken()));
-        new SendingService(authentication.getToken(), email, TokenHashing.tokenHash(account, authentication),
-                SENDING_ACCESS_URL, SENDING_ACCESS_TOKEN, AUTH_LINK_EXPIRATION_TIME, SENDING_SERVICE_MODES);
+        sendingService.sendAuthentication(authentication.getToken(), email,
+                TokenHashing.tokenHash(account, authentication));
     }
 
     private boolean systemMayAuthenticate() {

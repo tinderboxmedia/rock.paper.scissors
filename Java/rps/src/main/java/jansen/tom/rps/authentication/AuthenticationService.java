@@ -31,7 +31,7 @@ public class AuthenticationService {
     private JwtUtilities jwtUtilities;
 
     @Value("${authentication.expiration.time}")
-    public Integer AUTH_LINK_EXPIRATION_TIME;
+    private Integer AUTH_LINK_EXPIRATION_TIME;
 
     public Jwt checkToken(UUID token, String checksum) {
         Optional<Authentication> authentication = authenticationRepository.findByToken(token);
