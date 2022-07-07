@@ -57,8 +57,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 response.setStatus(expiredStatus);
                 response.setContentType("application/json");
                 Map<String, String> output =  new HashMap<>();
-                output.put("error", expiredStatus + " Unauthorized");
-                output.put("message", "The token provided is already expired.");
+                output.put("error", "Session Expired");
+                output.put("message", "The provided token is already expired.");
                 new ObjectMapper().writeValue(response.getOutputStream(), output);
             } catch (Exception error) {
                 // Ignore Others
