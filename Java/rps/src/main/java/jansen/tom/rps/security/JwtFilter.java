@@ -1,5 +1,7 @@
 package jansen.tom.rps.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.ExpiredJwtException;
 import jansen.tom.rps.account.Account;
 import jansen.tom.rps.account.AccountRepository;
 import jansen.tom.rps.account.role.Role;
@@ -15,10 +17,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -35,14 +34,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
         String method = request.getMethod();
+        int expiredStatus = 401;
 
         // We make sure that all the public paths are not filtered through
         if(!(path.equals("/api/authentication") && method.equals("POST")) &&
            !(path.equals("/api/account") && method.equals("POST")) &&
            !path.equals("/favicon.ico") &&
            !path.equals("/error") &&
-           !path.equals("/"))
-        {
+           !path.equals("/")) {
 
             // Is for later use
             String email = null;
@@ -54,15 +53,22 @@ public class JwtFilter extends OncePerRequestFilter {
                     jwt = bearerToken.substring(7);
                     email = jwtUtilities.extractUsername(jwt);
                 }
+            } catch (ExpiredJwtException error) {
+                response.setStatus(expiredStatus);
+                response.setContentType("application/json");
+                Map<String, String> output =  new HashMap<>();
+                output.put("error", expiredStatus + " Unauthorized");
+                output.put("message", "The token provided is already expired.");
+                new ObjectMapper().writeValue(response.getOutputStream(), output);
             } catch (Exception error) {
-                // Ignoring JWT errors
+                // Ignore Others
             }
 
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 Optional<Account> foundAccount = accountRepository.findByEmailIgnoreCase(email);
                 if (foundAccount.isPresent()) {
                     Account account = foundAccount.get();
-                    if (jwtUtilities.validateToken(jwt, account)) {
+                    if (jwtUtilities.validateToken(jwt, account, "access")) {
                         if (account.getStatus() == Account.AccountStatus.VERIFIED) {
                             Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
                             Set<Role> roles = account.getRoles();
@@ -77,6 +83,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
             }
         }
-        filterChain.doFilter(request, response);
+        if (response.getStatus() != expiredStatus) {
+            filterChain.doFilter(request, response);
+        }
     }
 }

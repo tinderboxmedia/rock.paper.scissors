@@ -57,8 +57,8 @@ public class JwtUtilities {
                 .compact();
     }
 
-    public boolean validateToken(String token, Account account) {
-        return (extractUsername(token).equals(account.getEmail()) && extractAccess(token).equals("access"));
+    public boolean validateToken(String token, Account account, String type) {
+        return (extractUsername(token).equals(account.getEmail()) && extractAccess(token).equals(type));
     }
 
 }
