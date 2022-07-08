@@ -47,7 +47,7 @@ Make sure to treat `ACCESS_TOKEN` and `DKIM_PRIVATE_KEY` as secrets. This will e
 
 **Mailchannels**
 
-For `MAILCHANNELS_API` one can use `https://api.mailchannels.net/tx/v1/send`. Thanks to their API we can use Cloudflare Workers in order to send out our authentication mails for free.
+For `MAILCHANNELS_API` one can use `https://api.mailchannels.net/tx/v1/send`. Thanks to their API we can utilize our Cloudflare Worker in order to send out the authentication mails for free.
 
 ### Java
 
