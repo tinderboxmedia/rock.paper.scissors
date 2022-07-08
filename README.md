@@ -13,6 +13,8 @@ Rock Paper Scissors Game
 
 ### Cloudflare
 
+**DKIM Keys**
+
 We will be using Cloudflare Workers to create a script that we will use to send out the authentication mails. Cloudflare is pretty amazing as it will also be able to manage our DNS, domain and Angular project. Before we start creating the actual Worker, we will need to create a private and public DKIM key:
 
 ```
@@ -23,7 +25,29 @@ openssl genrsa 2048 | tee priv_key.pem | openssl rsa -outform der | openssl base
 echo -n "v=DKIM1;p=" > public.txt && openssl rsa -in priv_key.pem -pubout -outform der | openssl base64 -A >> public.txt
 ```
 
-You will end up with three files. Opening private.txt will provide you the private key, public.txt will give you the DNS record. This DNS record should be added to the domain you plan on sending the authentication mails from.
+You will end up with three files. Opening private.txt will provide you with the private key, public.txt will give you the DNS record. This DNS record should be added to the domain you plan on sending the authentication mails from.
+
+**Cloudflare Worker**
+
+The next step would be to create a Cloudflare Worker and add the `mail-api.js` script. You can do this by performing a Quick Edit. It is also important to create the following environment variables using their interface:
+
+```
+ACCESS_TOKEN	
+DESTINATION_URL
+DKIM_DOMAIN
+DKIM_PRIVATE_KEY	
+FROM_EMAIL
+FROM_NAME
+MAILCHANNELS_API
+SERVICE_NAME
+SUBJECT_EMAIL
+```
+
+Make sure to treat `ACCESS_TOKEN` and `DKIM_PRIVATE_KEY` as secrets. This will encrypt and secure them. Following `mail-api.js` should give you an idea on what the variable values should be. You can remove the three DKIM files if you added the DNS record and created the environment variables.
+
+**Mailchannels**
+
+For `MAILCHANNELS_API` one can use `https://api.mailchannels.net/tx/v1/send`. Thanks to their API we can use Cloudflare Workers in order to send out our authentication mails for free.
 
 ### Java
 
