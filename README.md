@@ -4,11 +4,26 @@ Rock Paper Scissors Game
 ## Contains
 
 - Frontend in Angular
+- Workers using Cloudflare
 - Backend in Java
 
 ### Angular
 
 `Empty`
+
+### Cloudflare
+
+We will be using Cloudflare Workers to create a script that we will use to send out the authentication mails. Cloudflare is pretty amazing as it will also be able to manage our DNS, domain and Angular project. Before we start creating the actual Worker, we will need to create a private and public DKIM key:
+
+```
+openssl genrsa 2048 | tee priv_key.pem | openssl rsa -outform der | openssl base64 -A >> private.txt
+```
+
+```
+echo -n "v=DKIM1;p=" > public.txt && openssl rsa -in priv_key.pem -pubout -outform der | openssl base64 -A >> public.txt
+```
+
+You will end up with three files. Opening private.txt will provide you the private key, public.txt will give you the DNS record. This DNS record should be added to the domain you plan on sending the authentication mails from.
 
 ### Java
 
