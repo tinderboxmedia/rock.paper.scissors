@@ -13,6 +13,10 @@ Rock Paper Scissors Game
 
 ### Cloudflare
 
+**SPF**
+
+We should include `include:relay.mailchannels.net` in our SPF record in the DNS section of our domain in order to send mails using Mailchannels.
+
 **DKIM Keys**
 
 We will be using Cloudflare Workers to create a script that we will use to send out the authentication mails. Cloudflare is pretty amazing as it will also be able to manage our DNS, domain and Angular project. Before we start creating the actual Worker, we will need to create a private and public DKIM key:
